@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 try:
-    from urllib import urlencode
-    from urlparse import urljoin
+    from urllib.parse import urlencode
+    from urllib.parse import urljoin
 except Exception:
     from urllib.parse import urlencode, urljoin
 
 try:
-    from urllib2 import Request, urlopen, HTTPError, URLError
+    from urllib.request import Request, urlopen
+    from urllib.error import HTTPError, URLError
 except ImportError:
     from urllib.request import Request, urlopen
     from urllib.error import HTTPError, URLError
@@ -53,11 +54,11 @@ class WialonError(Exception):
         if (self._code in WialonError.errors):
             explanation = " ".join([WialonError.errors[self._code], self._text])
 
-        message = u'{error} ({code})'.format(error=explanation, code=self._code)
-        return u'WialonError({message})'.format(message=message)
+        message = '{error} ({code})'.format(error=explanation, code=self._code)
+        return 'WialonError({message})'.format(message=message)
 
     def __str__(self):
-        return unicode(self).encode("utf8")
+        return str(self).encode("utf8")
 
     def __repr__(self):
         return str(self)
@@ -134,9 +135,9 @@ class Wialon(object):
             response = urlopen(request)
             response_content = response.read()
         except HTTPError as e:
-            raise WialonError(0, u"HTTP {code}".format(code=e.code))
+            raise WialonError(0, "HTTP {code}".format(code=e.code))
         except URLError as e:
-            raise WialonError(0, unicode(e))
+            raise WialonError(0, str(e))
 
         content_type = response.info().getheader('Content-Type')
         result = response_content.decode('utf-8', errors='ignore')
@@ -146,7 +147,7 @@ class Wialon(object):
         except ValueError as e:
             raise WialonError(
                 0,
-                u"Invalid response from Wialon: {0}".format(e),
+                "Invalid response from Wialon: {0}".format(e),
             )
 
         if (isinstance(result, dict) and 'error' in result):

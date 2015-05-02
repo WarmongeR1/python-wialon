@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import flags
+from . import flags
 
 from .api import Wialon, WialonError
 # Silence potential warnings from static analysis tools:
