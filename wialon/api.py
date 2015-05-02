@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 
 try:
-    from urllib.parse import urlencode
-    from urllib.parse import urljoin
+    from urllib import urlencode
+    from urlparse import urljoin
 except Exception:
     from urllib.parse import urlencode, urljoin
 
 try:
-    from urllib.request import Request, urlopen
-    from urllib.error import HTTPError, URLError
+    from urllib2 import Request, urlopen, HTTPError, URLError
 except ImportError:
     from urllib.request import Request, urlopen
     from urllib.error import HTTPError, URLError
@@ -20,6 +19,10 @@ try:
 except ImportError:
     import json
 
+try:
+    unicode
+except NameError:
+    unicode = str
 
 class WialonError(Exception):
     """
@@ -137,7 +140,7 @@ class Wialon(object):
         except HTTPError as e:
             raise WialonError(0, "HTTP {code}".format(code=e.code))
         except URLError as e:
-            raise WialonError(0, str(e))
+            raise WialonError(0, unicode(e))
 
         content_type = response.info().get('Content-Type')
         result = response_content.decode('utf-8', errors='ignore')
