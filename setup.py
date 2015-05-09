@@ -33,6 +33,6 @@ setup(name='python-wialon',
       classifiers=CLASSIFIERS,
       keywords=KEYWORDS,
       zip_safe=True,
-      install_requires=['simplejson'],
+      install_requires=['simplejson', 'requests'],
       py_modules=['python-wialon']
 )
