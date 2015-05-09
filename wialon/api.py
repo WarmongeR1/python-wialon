@@ -13,6 +13,7 @@ except ImportError:
     from urllib.request import Request, urlopen
     from urllib.error import HTTPError, URLError
 
+import requests
 try:
     import simplejson as json
     assert json  # Silence potential warnings from static analysis tools
@@ -60,11 +61,7 @@ class WialonError(Exception):
         message = '{error} ({code})'.format(error=explanation, code=self._code)
         return 'WialonError({message})'.format(message=message)
 
-    def __str__(self):
-        return str(self).encode("utf8")
 
-    def __repr__(self):
-        return str(self)
 
 
 class Wialon(object):
@@ -84,7 +81,10 @@ class Wialon(object):
             )
         )
 
-        self.__base_api_url = urljoin(self.__base_url, 'wialon/ajax.html?')
+        if host == 'hst-api.wialon.com':
+            self.__base_api_url = urljoin(self.__base_url, 'wialon/ajax.html?')
+        else:
+            self.__base_api_url = urljoin(self.__base_url, 'ajax.html?')
 
     @property
     def sid(self):
@@ -106,7 +106,7 @@ class Wialon(object):
         """
         url = urljoin(self.__base_url, 'avl_evts')
         params = {
-            'sid': self.sid
+            'ssid': self.sid
         }
 
         return self.request('avl_evts', url, params)
@@ -123,36 +123,32 @@ class Wialon(object):
             params = json.dumps(kwargs, ensure_ascii=False)
         params = {
             'svc': action.replace('_', '/', 1),
-            'params': params.encode("utf-8"),
-            'sid': self.sid
+            'params': params,
+            'ssid': self.sid
         }
         all_params = self.__default_params.copy()
         all_params.update(params)
         return self.request(action, self.__base_api_url, all_params)
 
     def request(self, action, url, params):
-        url_params = urlencode(params)
-        data = url_params.encode('utf-8')
         try:
-            request = Request(url, data)
-            response = urlopen(request)
-            response_content = response.read()
+            response = requests.get(url, params)
         except HTTPError as e:
             raise WialonError(0, "HTTP {code}".format(code=e.code))
         except URLError as e:
             raise WialonError(0, unicode(e))
 
-        content_type = response.info().get('Content-Type')
-        result = response_content.decode('utf-8', errors='ignore')
+        content_type = response.headers.get('Content-Type')
         try:
             if content_type == 'application/json':
-                result = json.loads(result)
+                result = response.json()
         except ValueError as e:
             raise WialonError(
                 0,
                 "Invalid response from Wialon: {0}".format(e),
             )
 
+        # print(response.url, type(response), result, params)
         if (isinstance(result, dict) and 'error' in result):
             raise WialonError(result['error'], action)
 
