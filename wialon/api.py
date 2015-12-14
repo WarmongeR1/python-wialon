@@ -14,8 +14,10 @@ except ImportError:
     from urllib.error import HTTPError, URLError
 
 import requests
+
 try:
     import simplejson as json
+
     assert json  # Silence potential warnings from static analysis tools
 except ImportError:
     import json
@@ -24,6 +26,7 @@ try:
     unicode
 except NameError:
     unicode = str
+
 
 class WialonError(Exception):
     """
@@ -55,17 +58,15 @@ class WialonError(Exception):
 
     def __unicode__(self):
         explanation = self._text
-        if (self._code in WialonError.errors):
+        if self._code in WialonError.errors:
             explanation = " ".join([WialonError.errors[self._code], self._text])
 
         message = '{error} ({code})'.format(error=explanation, code=self._code)
         return 'WialonError({message})'.format(message=message)
 
 
-
-
 class Wialon(object):
-    def __init__(self, scheme='http',  host="hst-api.wialon.com", port=80, sid=None, **extra_params):
+    def __init__(self, scheme='http', host="hst-api.wialon.com", port=80, sid=None, **extra_params):
         """
         Created the Wialon API object.
         """
@@ -116,7 +117,7 @@ class Wialon(object):
         Call the API method provided with the parameters supplied.
         """
 
-        if (not kwargs):
+        if not kwargs:
             # List params for batch
             params = json.dumps(argc, ensure_ascii=False)
         else:
@@ -149,19 +150,19 @@ class Wialon(object):
             )
 
         # print(response.url, type(response), result, params)
-        if (isinstance(result, dict) and 'error' in result):
+        if isinstance(result, dict) and 'error' in result:
             raise WialonError(result['error'], action)
 
         errors = []
         if isinstance(result, list):
             # Check for batch errors
             for elem in result:
-                if (not isinstance(elem, dict)):
+                if not isinstance(elem, dict):
                     continue
                 if "error" in elem:
                     errors.append("%s (%d)" % (WialonError.errors[elem["error"]], elem["error"]))
 
-        if (errors):
+        if errors:
             errors.append(action)
             raise WialonError(0, " ".join(errors))
 
@@ -172,10 +173,12 @@ class Wialon(object):
         Enable the calling of Wialon API methods through Python method calls
         of the same name.
         """
+
         def get(self, *args, **kwargs):
             return self.call(action_name, *args, **kwargs)
 
         return get.__get__(self)
+
 
 if __name__ == '__main__':
     try:
@@ -185,4 +188,3 @@ if __name__ == '__main__':
         result = wialon_api.avl_evts()
     except WialonError:
         pass
-
