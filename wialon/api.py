@@ -66,13 +66,15 @@ class WialonError(Exception):
 
 
 class Wialon(object):
-    def __init__(self, scheme='http', host="hst-api.wialon.com", port=80, sid=None, **extra_params):
+    def __init__(self, scheme='http', host="hst-api.wialon.com", port=80, sid=None, is_sdk_pro=False, **extra_params):
         """
         Created the Wialon API object.
         """
         self._sid = sid
         self.__default_params = {}
         self.__default_params.update(extra_params)
+
+        self.sid_key = 'ssid' if is_sdk_pro else 'sid'
 
         self.__base_url = (
             '{scheme}://{host}:{port}'.format(
@@ -107,7 +109,7 @@ class Wialon(object):
         """
         url = urljoin(self.__base_url, 'avl_evts')
         params = {
-            'ssid': self.sid
+            self.sid_key: self.sid
         }
 
         return self.request('avl_evts', url, params)
@@ -125,7 +127,7 @@ class Wialon(object):
         params = {
             'svc': action.replace('_', '/', 1),
             'params': params,
-            'ssid': self.sid
+            self.sid_key: self.sid
         }
         all_params = self.__default_params.copy()
         all_params.update(params)
